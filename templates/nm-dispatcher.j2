@@ -1,0 +1,10 @@
+#!/bin/sh
+
+IFACE=$1
+STATUS=$2
+
+if [ "$STATUS" = "up" ]; then
+
+{% include "roce.sh.j2" %}
+
+fi

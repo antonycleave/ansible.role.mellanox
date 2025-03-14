@@ -1,0 +1,33 @@
+---
+mellanox_driver_version: "2.9.1"
+# mellanox from repos section
+mellanox_use_online_repos: true
+mellanox_enabled: true
+mellanox_repo_arch: "{{ ansible_architecture }}"
+mellanox_repo_enabled: "{{ '1' if mellanox_enabled|bool else '0' }}"
+mellanox_gpgkey: "https://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox"
+mellanox_gpgkey_check: "{{ '1' if mellanox_gpgkey!='' else 0 }}"
+mellanox_driver_type: doca # this used to be mlnx_ofed
+mellanox_yum_repo_base_url: "https://linux.mellanox.com/public/repo/{{ mellanox_driver_type }}"
+mellanox_yum_repo_os_version: "{{ ansible_distribution_version }}"
+mellanox_yum_repo_os_family: "rhel"
+mellanox_apt_repo_os_family: "ubuntu"
+mellanox_apt_repo_os_version: "{{ ansible_distribution_version }}"
+mellanox_apt_key_path: "/etc/apt/keyrings/RPM-GPG-KEY-Mellanox"
+#for legacy ofed used one of these
+# if this is not set then the code falls back to mellanox_ofed_base_pkg defined below
+# mellanox_ofed_base_pkg  accepts one of the following
+# mlnx-ofed-all - Installs all available packages in MLNX_OFED.
+# mlnx-ofed-basic - Installs basic packages required for running Mellanox cards.
+# mlnx-ofed-guest - Installs packages required by guest OS
+# mlnx-ofed-hpc - Installs packages required for HPC.
+# mlnx-ofed-hypervisor - Installs packages required by hypervisor OS
+# mlnx-ofed-vma - Installs packages required by VMA.
+# mlnx-ofed-vma-eth - Installs packages required by VMA to work over Ethernet.
+# mlnx-ofed-vma-vpi - Installs packages required by VMA to support VPI.
+mellanox_ofed_base_pkg: "mlnx-ofed-basic"
+
+# mellanox_package_list can be set to specify a specifc list of packages if you know what you are doing
+# this is now set in a per os defaults list in vars
+
+mellanox_packages_state: latest

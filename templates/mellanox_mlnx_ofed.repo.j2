@@ -1,0 +1,11 @@
+#
+# Mellanox Technologies Ltd. public repository configuration file.
+# For more information, refer to http://linux.mellanox.com
+#
+
+[mellanox_{{ mellanox_driver_type }}_{{ mellanox_driver_version }}_base]
+name=Mellanox Technologies {{ mellanox_yum_repo_os_family }}{{ mellanox_yum_repo_os_version }}-$basearch mlnx_ofed {{ mellanox_driver_version }}
+baseurl={{mellanox_yum_repo_base_url}}/{{ mellanox_driver_version }}/{{ mellanox_yum_repo_os_family }}{{ mellanox_yum_repo_os_version }}/$basearch
+enabled={{ mellanox_repo_enabled }}
+mellanox_gpgkey=http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox
+gpgcheck={{ mellanox_gpgkey_check }}

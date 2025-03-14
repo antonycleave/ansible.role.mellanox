@@ -1,0 +1,59 @@
+---
+
+# TODO: Are all of these packages actually needed?
+- name: Install perl
+  ansible.builtin.yum:
+    name:
+      - perl
+      - kernel-devel
+      - autoconf
+      - python3-devel
+      - automake
+      - libtool
+      - patch
+      - kernel-rpm-macros
+      - rpm-build
+      #- tcsh
+      - tk
+      - gcc-gfortran
+      - kernel-modules-extra
+    state: latest
+  when: ansible_os_family == "RedHat"
+
+- name: Set OS fact for Debian
+  set_fact:
+    os_type: "ubuntu"
+  when: ansible_os_family == "Debian"
+
+- name: Set OS fact for RedHat
+  set_fact:
+    os_type: "rhel"
+  when: ansible_os_family == "RedHat"
+
+- name: Download Mellanox OFED driver
+  ansible.builtin.get_url:
+    url: "https://content.mellanox.com/ofed/MLNX_OFED-{{ mellanox_driver_version }}/MLNX_OFED_LINUX-{{ mellanox_driver_version }}-{{ os_type }}{{ ansible_distribution_version }}-x86_64.tgz"
+    dest: /tmp/ofed.tgz
+    mode: '0440'
+
+- name: create extract directory
+  ansible.builtin.command:
+    cmd: /usr/bin/mkdir -p /tmp/ofed
+    creates: /tmp/ofed
+
+- name: Unzip OFED
+  ansible.builtin.command:
+    cmd: tar xvf /tmp/ofed.tgz -C /tmp/ofed --strip-components=2
+    creates: /tmp/ofed/mlnxofedinstall
+
+- name: Install OFED
+  ansible.builtin.command:
+    cmd: /tmp/ofed/mlnxofedinstall --skip-repo --add-kernel-support -q
+    creates: /etc/modprobe.d/mlnx.conf
+  when: ansible_os_family == "RedHat"
+
+- name: Install OFED
+  ansible.builtin.command:
+    cmd: /tmp/ofed/mlnxofedinstall -q
+    creates: /etc/modprobe.d/mlnx.conf
+  when: ansible_os_family == "Debian"

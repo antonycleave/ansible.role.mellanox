@@ -1,0 +1,60 @@
+---
+- block:
+  - name: Add Mellanox Repo
+    ansible.builtin.template:
+      src: "mellanox_mlnx_ofed.repo.j2"
+      dest: "/etc/yum.repos.d/mellanox_mlnx_ofed.repo"
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Import a mellanox gpgkey
+    ansible.builtin.rpm_key:
+      state: present
+      key: "{{ mellanox_gpgkey }}"
+    when: mellanox_gpgkey != ''
+  when: ansible_os_family == "RedHat"
+
+- name: Configure Mellanox repo for Debian based distributions
+  block:
+    - name: Create /etc/apt/keyrings directory if it does not exist
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Download rocm.gpg.key
+      ansible.builtin.get_url:
+        url: "{{ mellanox_gpgkey }}"
+        dest: /tmp/RPM-GPG-KEY-Mellanox
+        mode: '0644'
+
+    - name: Run gpg dearmor
+      ansible.builtin.command: gpg -o {{ mellanox_apt_key_path }} --dearmor /tmp/RPM-GPG-KEY-Mellanox
+      args:
+        creates: "{{ mellanox_apt_key_path }}"
+
+    - name: Add Mellanox OFED repo
+      ansible.builtin.template:
+        src: "mellanox_mlnx_ofed.list.j2"
+        dest: "/etc/apt/sources.list.d/mellanox_mlnx_ofed.list"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Perform a cache update
+      ansible.builtin.apt:
+        force_apt_get: true
+        update_cache: true
+      register: apt_lock_status
+      until: apt_lock_status is not failed
+      retries: 5
+      delay: 10
+  when: ansible_os_family == "Debian"
+
+- name: ensure mellanox ofed packages are installed/removed
+  ansible.builtin.package:
+    name: "{{ mellanox_package_list | default (mellanox_os_defaults['mellanox_package_list']) }}"
+    state: "{{ mellanox_packages_state }}"

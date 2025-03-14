@@ -1,0 +1,6 @@
+---
+mellanox_package_list:
+  - doca-kernel
+  - doca-roce
+  - mft
+  - kernel-mft-dkms

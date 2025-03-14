@@ -1,0 +1,45 @@
+---
+- name: Load a variable file based on the OS type into the gpu_os_defaults dict
+  ansible.builtin.include_vars:
+    file: "{{ item }}"
+    name: mellanox_os_defaults
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+    - "default.yml"
+
+- name: Include Tar install tasks
+  ansible.builtin.include_tasks: tarfile.yml
+  when: not mellanox_use_online_repos| bool
+
+- name: Include package install tasks
+  ansible.builtin.include_tasks: packages.yml
+  when: mellanox_use_online_repos| bool
+
+- name: Copy roce.sh to configure roce congestion control (NetworkManger)
+  ansible.builtin.template:
+    src: nm-dispatcher.j2
+    dest: /etc/NetworkManager/dispatcher.d/90-mlnx-roce-cc.sh
+    owner: root
+    group: root
+    mode: 0755
+  when: ansible_os_family == "RedHat"
+
+- name: Copy roce.sh to configure roce congestion control (networkd)
+  ansible.builtin.template:
+    src: networkd-dispatcher.j2
+    dest: /etc/networkd-dispatcher/routable.d/90-mlnx-roce-cc.sh
+    owner: root
+    group: root
+    mode: 0755
+  when: ansible_os_family == "Debian"
+
+- name: Copy mlnx_setup_cc.sh to configure roce congestion control to /usr/bin/mlnx_setup_cc.sh
+  ansible.builtin.copy:
+    src: mlnx_setup_cc.sh
+    dest: /usr/bin/mlnx_setup_cc.sh
+    owner: root
+    group: root
+    mode: 0755

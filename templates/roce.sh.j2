@@ -1,0 +1,16 @@
+
+if [ -d "/sys/class/net/${IFACE}/device/infiniband" ]; then
+  # do not run on bond devices
+  [ -f /tmp/${IFACE}-setup_cc.log ] && rm /tmp/${IFACE}-setup_cc.log
+  if [ -d /sys/class/net/${IFACE}/master ]; then
+    echo > "skipping ${IFACE} as it is in a bond member interface" > /tmp/${IFACE}-setup_cc.log
+    exit
+  fi
+  for path in /sys/class/net/${IFACE}/device/infiniband/*; do
+    if [ -d $path ]; then
+      ibdev=$(basename "$path")
+      /usr/bin/mlnx_setup_cc.sh -d $ibdev -i ${IFACE}  -s 26 -p 48 -b 50 >> /tmp/${IFACE}-setup_cc.log 2>&1
+    fi
+  done
+fi
+
